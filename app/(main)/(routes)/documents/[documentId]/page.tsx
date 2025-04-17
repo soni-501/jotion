@@ -14,12 +14,18 @@ interface DocumentIdPageProps {
   params: {
     documentId: Id<"documents">;
   };
-};
+}
 
 const DocumentIdPage = ({
   params
 }: DocumentIdPageProps) => {
-  const Editor = useMemo(() => dynamic(() => import("@/components/editor"), { ssr: false }) ,[]);
+  // Using dynamic import with no SSR to avoid hydration issues with the editor
+  const Editor = useMemo(() => 
+    dynamic(() => import("@/components/editor"), { 
+      ssr: false,
+      loading: () => <EditorSkeleton />
+    }), 
+  []);
 
   const document = useQuery(api.documents.getById, {
     documentId: params.documentId
@@ -65,7 +71,19 @@ const DocumentIdPage = ({
         />
       </div>
     </div>
-   );
+  );
 }
+
+// Editor loading skeleton component
+const EditorSkeleton = () => {
+  return (
+    <div className="space-y-4 pt-4">
+      <Skeleton className="h-4 w-[100%]" />
+      <Skeleton className="h-4 w-[90%]" />
+      <Skeleton className="h-4 w-[80%]" />
+      <Skeleton className="h-4 w-[95%]" />
+    </div>
+  );
+};
  
 export default DocumentIdPage;

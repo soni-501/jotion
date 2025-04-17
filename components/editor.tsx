@@ -1,60 +1,68 @@
 "use client";
 
-import { useTheme } from "next-themes";
-import {
-  BlockNoteEditor,
-  PartialBlock
-} from "@blocknote/core";
-import {
-  BlockNoteView,
-  useBlockNote
-} from "@blocknote/react";
-import "@blocknote/core/style.css";
+// import { uploadFiles } from "@/utils/uploadthing";
 
-import { useEdgeStore } from "@/lib/edgestore";
+import type { BlockNoteEditor, BlockSchemaFromSpecs, PartialBlock } from "@blocknote/core";
+import { BlockNoteView, useCreateBlockNote } from "@blocknote/react";
+import "@blocknote/core/fonts/inter.css";
+import "@blocknote/react/style.css";
+import { useTheme } from "next-themes";
 
 interface EditorProps {
-  onChange: (value: string) => void;
+  onChange: (e:any) => void;
   initialContent?: string;
   editable?: boolean;
-};
-
-const Editor = ({
+}
+// Hardcoded initial content
+const parsedInitialContent: PartialBlock<BlockSchemaFromSpecs<any>>[] = [
+  {
+    id: "1",
+    type: "paragraph",
+    // content: [
+    //   {
+    //     text: "Welcome to the editor!",
+    //     styles: {},
+    //   },
+    // ],
+  },
+  {
+    id: "2",
+    type: "paragraph",
+    // content: [
+    //   {
+    //     text: "This is a second paragraph.",
+    //     styles: {},
+    //   },
+    // ],
+  },
+];
+const Editor: React.FC<EditorProps> = ({
   onChange,
   initialContent,
-  editable
-}: EditorProps) => {
+  editable = true,
+}) => {
   const { resolvedTheme } = useTheme();
-  const { edgestore } = useEdgeStore();
-
-  const handleUpload = async (file: File) => {
-    const response = await edgestore.publicFiles.upload({ 
-      file
-    });
-
-    return response.url;
-  }
-
-  const editor: BlockNoteEditor = useBlockNote({
-    editable,
-    initialContent: 
-      initialContent 
-      ? JSON.parse(initialContent) as PartialBlock[] 
-      : undefined,
-    onEditorContentChange: (editor) => {
-      onChange(JSON.stringify(editor.topLevelBlocks, null, 2));
+  const currentTheme = resolvedTheme || "light";
+  const theme = currentTheme === "dark" ? "dark" : "light";
+  const editor: BlockNoteEditor = useCreateBlockNote({
+    initialContent: parsedInitialContent,
+    uploadFile: async (file: File) => {
+      // const [res] = await uploadFiles("imageUploader", { files: [file] });
+      return 'res.url';
     },
-    uploadFile: handleUpload
-  })
+  });
 
   return (
-    <div>
+    <div className="-mx-[54px] my-4">
       <BlockNoteView
         editor={editor}
-        theme={resolvedTheme === "dark" ? "dark" : "light"}
+        editable={editable}
+        theme={theme}
+        sideMenu={false}
+        // onChange={onChange}
       />
     </div>
-  )
-}
+  );
+};
 
 export default Editor;
